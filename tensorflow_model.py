@@ -194,6 +194,70 @@ class Code2VecModel(Code2VecModelBase):
             subtoken_recall=subtokens_evaluation_metric.recall,
             subtoken_f1=subtokens_evaluation_metric.f1)
 
+    def extract_code_vectors(self):
+        eval_start_time = time.time()
+        if self.eval_reader is None:
+            self.eval_reader = PathContextReader(vocabs=self.vocabs,
+                                                 model_input_tensors_former=_TFEvaluateModelInputTensorsFormer(),
+                                                 config=self.config, estimator_action=EstimatorAction.Evaluate)
+            input_iterator = tf.compat.v1.data.make_initializable_iterator(self.eval_reader.get_dataset())
+            self.eval_input_iterator_reset_op = input_iterator.initializer
+            input_tensors = input_iterator.get_next()
+
+            self.eval_top_words_op, self.eval_top_values_op, self.eval_original_names_op, _, _, _, _, \
+                self.eval_code_vectors = self._build_tf_test_graph(input_tensors)
+            if self.saver is None:
+                self.saver = tf.compat.v1.train.Saver()
+
+        if self.config.MODEL_LOAD_PATH and not self.config.TRAIN_DATA_PATH_PREFIX:
+            self._initialize_session_variables()
+            self._load_inner_model(self.sess)
+
+        with open('extracted_names.txt', 'w') as names_output_file:
+            code_vectors_file = open('extracted.vectors', 'w')
+            
+            total_predictions = 0
+            total_prediction_batches = 0
+
+            start_time = time.time()
+
+            self.sess.run(self.eval_input_iterator_reset_op)
+
+            self.log('Starting extraction')
+
+            # Run extraction in a loop until iterator is exhausted.
+            # Each iteration = batch. We iterate as long as the tf iterator (reader) yields batches.
+            batch = 0
+            try:
+                while True:
+                    original_names, code_vectors = self.sess.run(
+                        [self.eval_original_names_op, self.eval_code_vectors],
+                    )
+                    # shapes:
+                    #   original_names: (batch, );   code_vectors: (batch, code_vector_size)
+
+                    original_names = common.binary_to_string_list(original_names)  # (batch,)
+
+                    total_predictions += len(original_names)
+                    total_prediction_batches += 1
+
+                    self._write_original_names(names_output_file, original_names)
+                    self._write_normalized_code_vectors(code_vectors_file, code_vectors)
+
+                    if total_prediction_batches % self.config.NUM_BATCHES_TO_LOG_PROGRESS == 0:
+                        elapsed = time.time() - start_time
+                        # start_time = time.time()
+                        self._trace_evaluation(total_predictions, elapsed)
+                        
+            except tf.errors.OutOfRangeError:
+                pass  # reader iterator is exhausted and have no more batches to produce.
+            self.log('Done extracting, epoch reached')
+
+        code_vectors_file.close()
+        
+        elapsed = int(time.time() - eval_start_time)
+        self.log("Extraction time: %sH:%sM:%sS" % ((elapsed // 60 // 60), (elapsed // 60) % 60, elapsed % 60))
+
     def _build_tf_training_graph(self, input_tensors):
         # Use `_TFTrainModelInputTensorsFormer` to access input tensors by name.
         input_tensors = _TFTrainModelInputTensorsFormer().from_model_input_form(input_tensors)

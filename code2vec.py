@@ -1,6 +1,7 @@
 from vocabularies import VocabType
 from config import Config
 from interactive_predict import InteractivePredictor
+from interactive_extract import InteractiveExtractor
 from model_base import Code2VecModelBase
 
 
@@ -32,7 +33,12 @@ if __name__ == '__main__':
         if eval_results is not None:
             config.log(
                 str(eval_results).replace('topk', 'top{}'.format(config.TOP_K_WORDS_CONSIDERED_DURING_PREDICTION)))
+    if (config.is_extracting and not config.is_training):
+        model.extract_code_vectors()
     if config.PREDICT:
         predictor = InteractivePredictor(config, model)
         predictor.predict()
+    if config.INTERACTIVE_EXTRACT:
+        extractor = InteractiveExtractor(config, model)
+        extractor.extract()
     model.close_session()

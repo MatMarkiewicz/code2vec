@@ -14,6 +14,8 @@ class Config:
                             help="path to preprocessed dataset", required=False)
         parser.add_argument("-te", "--test", dest="test_path",
                             help="path to test file", metavar="FILE", required=False, default='')
+        parser.add_argument("-ev", "--extract_vectors", dest="ev_data_path",
+                            help="path to data file", metavar="FILE", required=False, default='')
         parser.add_argument("-s", "--save", dest="save_path",
                             help="path to save the model file", metavar="FILE", required=False)
         parser.add_argument("-w2v", "--save_word2v", dest="save_w2v",
@@ -33,6 +35,8 @@ class Config:
                                  'size.')
         parser.add_argument('--predict', action='store_true',
                             help='execute the interactive prediction shell')
+        parser.add_argument('--interactive_extract', action='store_true',
+                            help='execute the interactive extraction shell')
         parser.add_argument("-fw", "--framework", dest="dl_framework", choices=['keras', 'tensorflow'],
                             default='tensorflow', help="deep learning framework to use.")
         parser.add_argument("-v", "--verbose", dest="verbose_mode", type=int, required=False, default=1,
@@ -73,10 +77,12 @@ class Config:
         args = self.arguments_parser().parse_args()
         # Automatically filled, do not edit:
         self.PREDICT = args.predict
+        self.INTERACTIVE_EXTRACT = args.interactive_extract
         self.MODEL_SAVE_PATH = args.save_path
         self.MODEL_LOAD_PATH = args.load_path
         self.TRAIN_DATA_PATH_PREFIX = args.data_path
         self.TEST_DATA_PATH = args.test_path
+        self.EV_DATA_PATH = args.ev_data_path
         self.RELEASE = args.release
         self.EXPORT_CODE_VECTORS = args.export_code_vectors
         self.SAVE_W2V = args.save_w2v
@@ -114,10 +120,12 @@ class Config:
 
         # Automatically filled by `args`.
         self.PREDICT: bool = False   # TODO: update README;
+        self.INTERACTIVE_EXTRACT: bool = False   # TODO: update README;
         self.MODEL_SAVE_PATH: Optional[str] = None
         self.MODEL_LOAD_PATH: Optional[str] = None
         self.TRAIN_DATA_PATH_PREFIX: Optional[str] = None
         self.TEST_DATA_PATH: Optional[str] = ''
+        self.EV_DATA_PATH: Optional[str] = ''
         self.RELEASE: bool = False
         self.EXPORT_CODE_VECTORS: bool = False
         self.SAVE_W2V: Optional[str] = None   # TODO: update README;
@@ -163,6 +171,10 @@ class Config:
         return bool(self.TEST_DATA_PATH)
 
     @property
+    def is_extracting(self) -> bool:
+        return bool(self.EV_DATA_PATH)
+
+    @property
     def train_steps_per_epoch(self) -> int:
         return ceil(self.NUM_TRAIN_EXAMPLES / self.TRAIN_BATCH_SIZE) if self.TRAIN_BATCH_SIZE else 0
 
@@ -171,6 +183,8 @@ class Config:
         return ceil(self.NUM_TEST_EXAMPLES / self.TEST_BATCH_SIZE) if self.TEST_BATCH_SIZE else 0
 
     def data_path(self, is_evaluating: bool = False):
+        if is_evaluating and self.is_extracting:
+            return self.EV_DATA_PATH
         return self.TEST_DATA_PATH if is_evaluating else self.train_data_path
 
     def batch_size(self, is_evaluating: bool = False):

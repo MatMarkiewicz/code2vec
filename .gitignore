@@ -5,3 +5,5 @@
 **/.idea/**
 *.tar.gz
 **/log.txt
+extracted*
+__pycache__/**
