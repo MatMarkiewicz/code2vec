@@ -1,14 +1,11 @@
-void f(int[] array) {
-    boolean swapped = true;
-    for (int i = 0; i < array.length && swapped; i++) {
-        swapped = false;
-        for (int j = 0; j < array.length - 1 - i; j++) {
-           if (array[j] > array[j+1]) {
-               int temp = array[j];
-               array[j] = array[j+1];
-               array[j+1]= temp;
-               swapped = true;
-           }
+boolean f(int n) {
+    if (n <= 1) {
+        return false;
+    }
+    for (int i = 2; i * i <= n; i++) {
+        if (n % i == 0) {
+            return false;
         }
     }
+    return true;
 }
