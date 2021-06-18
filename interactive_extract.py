@@ -69,3 +69,6 @@ class InteractiveExtractor:
                 print('Most similar functions:')
                 for name, idx in zip(similar_names, argsorted_dists):
                     print(name, ' dist: ', cosine_dist[idx])
+                if self.config.EXPORT_CODE_VECTORS:
+                    print('Code vector:')
+                    print(' '.join(map(str, raw_prediction.code_vector)))
