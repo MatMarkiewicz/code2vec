@@ -4,7 +4,7 @@ The goal of this project was to check how much information we can get from code 
 
 ## Part 1
 
-**All the details can be found at `README.md`.**
+**All the details can be found at ![`README.md`](https://github.com/MatMarkiewicz/code2vec/blob/master/README.md).**
 
 The first part was about adding new functionality to the code2vec model that able to find closes code functions to the given one. 
 The main idea is about extracting and saving code vectors from big code repositories. Then each time we have a new function we can check if have some similar functions yet created.
@@ -28,7 +28,7 @@ The results were not fully satisfying. There were some difficulties in separatin
 
 ## Part 2
 
-**All the details can be found at `KMeans.ipynb`**
+**All the details can be found at ![`KMeans.ipynb`](https://github.com/MatMarkiewicz/code2vec/blob/master/KMeans.ipynb)**
 
 This part was to explore if vectors of functions that have the same functionality are close to each other (in a cosine distance).
 
@@ -43,7 +43,7 @@ I found that code snippets with the same functionality are often far apart from 
 
 ## Part 3
 
-**All the details can be found at `Model_sensitivity.ipynb`**
+**All the details can be found at ![`Model_sensitivity.ipynb`](https://github.com/MatMarkiewicz/code2vec/blob/master/Model_sensitivity.ipynb)**
 
 In this part, I focused on measuring how specific code modifications influent changes in the code vector.
 
